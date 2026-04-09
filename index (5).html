@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glyco-Monitor BR - Protótipo</title>
+    <style>
+        :root {
+            --bg-color: #e0f2f1; /* Verde água claro do fundo */
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-sub: #757575;
+            
+            /* Cores dos Botões baseadas na imagem */
+            --color-glicemia: #ff8a80; /* Rosa/Vermelho claro */
+            --color-insulina: #ffb74d; /* Laranja claro */
+            --color-refeicao: #fff176; /* Amarelo claro */
+            --color-atividades: #81c784; /* Verde claro */
+            --color-historico: #90caf9; /* Azul claro */
+            
+            --safe-area-top: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            padding-top: calc(var(--safe-area-top) + 10px);
+            padding-bottom: 80px; /* Espaço para a barra inferior */
+        }
+
+        /* Container que simula a tela do celular */
+        .app-container {
+            width: 100%;
+            max-width: 400px; /* Largura típica de celular */
+            background-color: var(--bg-color);
+            position: relative;
+        }
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5px;
+            margin-bottom: 15px;
+        }
+
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2e7d32; /* Verde escuro */
+        }
+
+        .notch {
+            width: 60px;
+            height: 20px;
+            background-color: #000;
+            border-radius: 10px;
+        }
+
+        /* --- Seção de Círculos Superiores (Ações Rápidas) --- */
+        .top-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .action-circle-wrapper {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .circle-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+        }
+
+        .circle-label {
+            font-size: 0.75rem;
+            color: var(--text-main);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        /* --- Cartão Principal (Gráfico e Resumo) --- */
+        .main-chart-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .analogo-time {
+            text-align: right;
+        }
+
+        .analogo-label {
+            font-size: 0.65rem;
+            color: var(--text-sub);
+            text-transform: uppercase;
+        }
+
+        .analogo-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        /* Simulação do Gráfico */
+        .chart-simulation {
+            width: 100%;
+            height: 120px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            position: relative;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+        }
+        
+        /* Uma linha simples para simular a tendência */
+        .chart-line {
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            right: 10px;
+            height: 60px;
+            border-bottom: 2px solid #ff8a80;
+            border-left: 2px solid #ff8a80;
+            border-radius: 0 0 0 10px;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--text-sub);
+            padding: 0 5px;
+        }
+
+        /* Seção do Índice Glicêmico */
+        .ig-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .ig-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            text-transform: uppercase;
+        }
+
+        .ig-bar {
+            display: flex;
+            width: 120px;
+            height: 15px;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        .ig-segment { height: 100%; }
+        .ig-baixo { background-color: #a5d6a7; width: 40%; }
+        .ig-medio { background-color: #fff59d; width: 35%; }
+        .ig-alto { background-color: #ef9a9a; width: 25%; }
+
+        .ig-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: var(--text-sub);
+            width: 120px;
+            margin-top: 2px;
+        }
+
+        /* --- Seção de Novo Registro (Botões Grandes) --- */
+        .new-register-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .register-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .register-btn {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.1s;
+            text-align: left;
+        }
+
+        .register-btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-icon-wrapper {
+            width: 35px;
+            height: 35px;
+            margin-right: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        /* --- Barra de Navegação Inferior --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            border-radius: 20px 20px 0 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: #2e7d32; /* Verde escuro */
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        /* SVGs incorpados para os ícones */
+        .icon-svg {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <header>
+        <span class="app-title">Glyco-Monitor BR</span>
+        <div class="notch"></div>
+    </header>
+
+    <section class="top-actions">
+        <div class="action-circle-wrapper">
+            <div class="circle-icon" style="background-color: var(--color-glicemia); color: #b71c1c;">
+                <svg class="icon-svg" viewBox="0 0 24 24" width="28" height="28">
+                    <path d="M12 22C16.4183 22 20 18.4183 20 14C20 8 12 2 12 2C12 2 4 8 4 14C4 18.4183 7.58172 22 12 22Z" fill="currentColor" stroke="none"/>
+                </svg>
+            </div>
+            <span class="circle-label">Minha<br>Glicemia</span>
+        </div>
+        
+        <div class="action-circle-wrapper">
+            <div class="circle-icon" style="background-color: var(--color-insulina); color: #e65100;">
+                <svg class="icon-svg" viewBox="0 0 24 24" width="28" height="28" stroke="#fff">
+                    <line x1="5" y1="19" x2="19" y2="5"></line>
+                    <line x1="9" y1="21" x2="21" y2="9"></line>
+                    <line x1="14" y1="10" x2="16" y2="8"></line>
+                    <line x1="11" y1="13" x2="13" y2="11"></line>
+                    <polyline points="3 17 7 21"></polyline>
+                </svg>
+            </div>
+            <span class="circle-label">Registrar<br>Insulina</span>
+        </div>
+        
+        <div class="action-circle-wrapper">
+            <div class="circle-icon" style="background-color: var(--color-refeicao); color: #fbc02d;">
+                <svg class="icon-svg" viewBox="0 0 24 24" width="28" height="28" stroke="#888">
+                    <path d="M18 20v-10h3l1 10z"></path>
+                    <path d="M2 10v10h3l1 -10z"></path>
+                    <path d="M8 4l2 16"></path>
+                    <path d="M16 4l-2 16"></path>
+                    <path d="M12 4v16"></path>
+                </svg>
+            </div>
+            <span class="circle-label">Adicionar<br>Refeição</span>
+        </div>
+        
+        <div class="action-circle-wrapper">
+            <div class="circle-icon" style="background-color: var(--color-atividades); color: #1b5e20;">
+                <svg class="icon-svg" viewBox="0 0 24 24" width="28" height="28" stroke="#fff">
+                    <circle cx="15" cy="5" r="2"></circle>
+                    <path d="M12 11l-3 3l-2 6"></path>
+                    <path d="M17 11l-2 -3l-3 -1l-1 2.5"></path>
+                    <path d="M10 17l4 3l3 -3l-1 -5"></path>
+                </svg>
+            </div>
+            <span class="circle-label">Monitorar<br>Atividades</span>
+        </div>
+    </section>
+
+    <article class="main-chart-card">
+        <div class="card-header">
+            <h2 class="card-title">Tendência Semanal</h2>
+            <div class="analogo-time">
+                <div class="analogo-label">Relógio Analógico</div>
+                <div class="analogo-value">10:35</div>
+            </div>
+        </div>
+        
+        <div class="chart-simulation">
+            <div class="chart-line"></div>
+        </div>
+        <div class="chart-labels">
+            <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+        </div>
+        
+        <div class="ig-section">
+            <span class="ig-title">Índice Glicêmico</span>
+            <div>
+                <div class="ig-bar">
+                    <div class="ig-segment ig-baixo"></div>
+                    <div class="ig-segment ig-medio"></div>
+                    <div class="ig-segment ig-alto"></div>
+                </div>
+                <div class="ig-labels">
+                    <span>Baixo</span><span>Médio</span><span>Alto</span>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <section class="new-register-section">
+        <h2 class="section-title">Novo Registro</h2>
+        <div class="register-grid">
+            
+            <button class="register-btn" style="background-color: var(--color-glicemia);">
+                <div class="btn-icon-wrapper">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" style="color: #b71c1c;">
+                        <path d="M12 22C16.4183 22 20 18.4183 20 14C20 8 12 2 12 2C12 2 4 8 4 14C4 18.4183 7.58172 22 12 22Z" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
+                <span class="btn-text">Adicionar<br>Glicemia</span>
+            </button>
+            
+            <button class="register-btn" style="background-color: var(--color-insulina);">
+                <div class="btn-icon-wrapper">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" stroke="#fff">
+                        <line x1="5" y1="19" x2="19" y2="5"></line>
+                        <line x1="9" y1="21" x2="21" y2="9"></line>
+                    </svg>
+                </div>
+                <span class="btn-text">Registrar<br>Insulina</span>
+            </button>
+            
+            <button class="register-btn" style="background-color: var(--color-refeicao);">
+                <div class="btn-icon-wrapper">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" stroke="#888">
+                        <path d="M18 20v-10h3l1 10z"></path>
+                        <path d="M2 10v10h3l1 -10z"></path>
+                    </svg>
+                </div>
+                <span class="btn-text">Salvar<br>Refeição</span>
+            </button>
+            
+            <button class="register-btn" style="background-color: var(--color-historico);">
+                <div class="btn-icon-wrapper">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" stroke="#1565c0">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </div>
+                <span class="btn-text">Histórico<br>Completo</span>
+            </button>
+            
+        </div>
+    </section>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active">
+            <svg class="nav-icon icon-svg" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="nav-label">Início</span>
+        </button>
+        
+        <button class="nav-item">
+            <svg class="nav-icon icon-svg" viewBox="0 0 24 24">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span class="nav-label">Gráficos</span>
+        </button>
+        
+        <button class="nav-item">
+            <svg class="nav-icon icon-svg" viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="nav-label">Alarmes</span>
+        </button>
+        
+        <button class="nav-item">
+            <svg class="nav-icon icon-svg" viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span class="nav-label">Perfil</span>
+        </button>
+    </nav>
+
+</div>
+
+</body>
+</html>
